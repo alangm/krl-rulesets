@@ -1,7 +1,7 @@
 ruleset trip_store {
 
   meta {
-    name "Trip Store"
+    name "trip_store"
     description << Track trips ruleset for part 2 >>
     author "Alan Moody"
     logging on
