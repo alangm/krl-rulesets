@@ -7,15 +7,15 @@ ruleset echo {
     logging on
     sharing on
   }
-  
+
   global{}
-  
+
   rule hello {
     select when echo hello
     send_directive("say") with
       something = "Hello World";
   }
-  
+
   rule message {
     select when echo message
     pre {
@@ -24,5 +24,5 @@ ruleset echo {
     send_directive("say") with
       something = input
   }
-  
+
 }
