@@ -2,7 +2,7 @@ ruleset track_trips {
 
   meta {
     name "track_trips"
-    description << Track tips ruleset for part 1 >>
+    description << Track trips ruleset for part 1 >>
     author "Alan Moody"
     logging on
     sharing on
