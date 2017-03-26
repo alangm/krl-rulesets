@@ -1,14 +1,14 @@
 ruleset echo {
 
-	meta {
-		name "echo"
-		description << Echo ruleset for part 1 >>
-		author "Alan Moody"
-		logging on
-		sharing on
-	}
+  meta {
+    name "echo"
+    description << Echo ruleset for part 1 >>
+    author "Alan Moody"
+    logging on
+    sharing on
+  }
   
-	global{}
+  global{}
   
   rule hello {
     select when echo hello
