@@ -1,3 +1,3 @@
-# Deliverables
+# Single PICO lab
 
-### Part 1
+Parts 1, 2, and 3
