@@ -6,7 +6,7 @@ ruleset track_trips_2 {
     author "Alan Moody"
     logging on
     sharing on
-    provides process_trip
+    provides long_trip, 
   }
 
   global {
