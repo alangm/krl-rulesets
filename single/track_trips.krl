@@ -16,6 +16,6 @@ ruleset track_trips {
       mileage = event:attr("mileage")
     }
     send_directive("trip") with
-      trip_length = mileage
+      length = mileage
   }
 }
