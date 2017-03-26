@@ -8,9 +8,7 @@ ruleset track_trips {
     sharing on
   }
 
-  global {
-    long_trip = 40
-  }
+  global {}
 
   rule process_trip {
     select when echo message
@@ -20,3 +18,4 @@ ruleset track_trips {
     send_directive("trip") with
       trip_length = mileage
   }
+}
