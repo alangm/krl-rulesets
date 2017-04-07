@@ -52,7 +52,7 @@ ruleset manage_fleet {
 		pre {
 			name = event:attr("vehicle_name");
 			attributes = {}
-				.put(["Prototype_rids"],"b507963x6.prod;b507963x8.prod;b507764x7.prod") //track_trips_part_2;trip_store;subscription_request
+				.put(["Prototype_rids"],"b507963x6.prod;b507963x8.prod;b507963x12.prod") //track_trips_part_2;trip_store;subscription_request
 				.put(["name"],name)
 				.put(["parent_eci"], "4A51D364-130D-11E7-B8AD-64F1E71C24E1")
 				;
