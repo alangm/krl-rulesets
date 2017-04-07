@@ -5,7 +5,6 @@ ruleset echo {
     description << Echo ruleset for part 1 >>
     author "Alan Moody"
     logging on
-    sharing on
   }
 
   global{}
