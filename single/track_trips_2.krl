@@ -14,7 +14,7 @@ ruleset track_trips_2 {
   rule process_trip {
     select when car new_trip
     pre {
-      mileage = event:attr("mileage").klog("mileage: ");
+      mileage = event:attr("mileage");
     }
     send_directive("trip") with
       length = mileage
@@ -23,7 +23,7 @@ ruleset track_trips_2 {
   rule find_long_trips {
     select when explicit trip_processed
     pre {
-      mileage = event:attr("mileage").klog("mileage: ");
+      mileage = event:attr("mileage");
     }
     noop();
     fired {
