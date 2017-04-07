@@ -5,8 +5,7 @@ ruleset track_trips_2 {
     description << Track trips ruleset for part 2 >>
     author "Alan Moody"
     logging on
-    sharing on
-    provides long_trip
+    shares long_trip
   }
   global {
     long_trip = 100
