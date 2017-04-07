@@ -1,75 +1,135 @@
 ruleset manage_fleet {
 
-  meta {
-    name "Fleet Manager"
-    description << Ruleset for fleet pico >>
-    author "Alan Moody"
-    logging on
-    sharing on
+	meta {
+		name "Fleet Manager"
+		description << Ruleset for fleet pico >>
+		author "Alan Moody"
+		logging on
+		sharing on
+		provides vehicles, subscriptions, fleet_trips, fleet_trips_gather
+		use module v1_wrangler alias wranglerOS
+	}
+	global{
+		vehicles = function() {
+			results = wranglerOS:children();
+			children = results{"children"};
+			children;
+		};
 
-    use module  b507199x5 alias wrangler
-    provides vehicles
+		subscriptions = function() {
+			results = wranglerOS:subscriptions();
+			subscriptions = results{"subscriptions"};
+			list = subscriptions{"subscribed"};
+			list;
+		};
 
-  }
-  global {
-    
-    vehicles = function() {
-      wranglerSubscriptions = wrangler:subscriptions();
-      subscriptions = wranglerSubs{"subscriptions"};
-      vehicles = subscriptions{"subscribed"};
-      vehicles2 = vehicles.map(function(vehicle){
-                vals = vehicle.values();
-                vals.head();
-      });
-      filtered_subscriptions = vehicles2.filter(function(obj) {
-          obj{"status"} eq "subscribed" && obj{"relationship"} eq "Fleet" && obj{"name_space"} eq "Fleet_Subscriptions"
-        });
-      filtered_subscriptions;
-    }
+		fleet_trips = function() {
+			all_trips = vehicles().map(function(vehicle) {
+				cloud_url = "https://cs.kobj.net/sky/cloud/";
+				mod = "b507764x8.prod";
+				func = "trips";
+				response = http:get("#{cloud_url}#{mod}/#{func}", (params || {}).put(["_eci"], vehicle[0]));
 
+				status = response{"status_code"};
 
-  rule create_vehicle {
-    select when car new_vehicle
-    pre {
-      name = "Vehicle-" + ent:wtf.as(str);
-      attributes = {}
-                    .put(["Prototype_rids"],"b507782x4.dev;b507782x2.dev;b507782x3.dev") 
-                    .put(["name"], name) 
-                    .put(["parent_eci"],"C098478E-0507-11E6-BD6B-81ADE71C24E1")
-                    ;
+				response{"content"}.decode();
+			});
+			all_trips;
+		}
 
-    }
-    {
-      event:send({"cid":meta:eci()}, "wrangler", "child_creation")  
-      with attrs = attributes.klog("attributes: "); 
-    }
-    always{
-      set ent:wtf 0 if not ent:wtf;
-      set ent:wtf ent:wtf + 1;
-      log("create child for " + child);
-    }
-  }
+		fleet_trips_gather = function() {
+			trips = ent:reports;
+			trips;
+		}
 
-  rule delete_vehicle {
-        select when car unneeded_vehicle
-            pre {
-                eci = event:attr("eci").klog("delete: ");
-                attributes = {}
-                            .put(["toDelete"], eci)
-                            ;
-                back_channel_eci = get_back_channel_eci_by_eci(eci);
-                bc_attributes = {}
-                                    .put(["eci"], back_channel_eci)
-                                    ;
-            }
+		num_cars_in_report = function(cid) {
+			report = ent:reports{[cid]};
+			trips.length();
+		}
+	}
+	rule create_vehicle {
+		select when car new_vehicle
+		pre {
+			name = event:attr("vehicle_name");
+			attributes = {}
+				.put(["Prototype_rids"],"b507963x6.prod;b507963x8.prod;b507764x7.prod") //track_trips_part_2;trip_store;subscription_request
+				.put(["name"],name)
+				.put(["parent_eci"], "4A51D364-130D-11E7-B8AD-64F1E71C24E1")
+				;
+		}
+		{
+			event:send({"cid":meta:eci()}, "wrangler", "child_creation")
+				with attrs = attributes.klog("attributes: ");
+		}
+		always {
+			log("create child for " + child);
+		}
+	}
 
-            if (eci neq '') then {
-                event:send({"cid":meta:eci()}, "wrangler", "child_deletion")
-                    with attrs = attributes.klog("del attributes: ");
-                event:send({"cid":meta:eci()}, "wrangler", "subscription_removal")
-                    with attrs = bc_attributes.klog("bc_attributes: ");
-            }
-    }
+	rule autoAccept {
+		select when wrangler inbound_pending_subscription_added
+		pre {
+			attributes = event:attrs().klog("subscription: ");
+		}
+		{
+			noop();
+		}
+		always {
+			raise wrangler event "pending_subscription_approval"
+				attributes attributes;
+				log("auto accepted subscription.")
+		}
+	}
 
+	rule delete_vehicle {
+		select when car unneeded_vehicle
+		pre {
+			eci = event:attr("target_eci").klog("Pulled target_eci: ");
+			channel_name = event:attr("channel_name").klog("Pulled channel_name: ");
+			attributes = {}
+				.put(["deletionTarget"],eci)
+				.put(["channel_name"],channel_name)
+				;
+		}
+		{
+			noop();
+		}
+		always {
+			raise wrangler event "child_deletion"
+				attributes attributes.klog("attributes: ");
+			raise wrangler event "subscription_cancellation"
+				attributes attributes.klog("attributes: ");
+		}
+	}
 
+	rule report_scatter {
+		select when car report_scatter
+			foreach subscriptions() setting (subscription)
+		pre {
+			event_eci = subscription.pick("$..event_eci").klog("Event eci: ");
+			mycid = random:uuid();
+			attr = {}
+				.put(["mycid"], mycid)
+				;
+		}
+		{
+			event:send({"cid":event_eci},"explicit","report_requested")
+				with attrs = attr.klog("attributes: ")
+		}
+		{
+			log("Sent event to: " + event_eci + " with mycid: " + mycid + " with attr: " + attr);
+		}
+	}
+
+	rule gather_reports {
+		select when explicit gather_reports
+		pre {
+			cid = event:attr("cid");
+			report = event:attr("report");
+			num_reported = num_cars_in_report(cid);
+		}
+		always {
+			set ent:reports{[cid]} ent:reports{[cid]}.append(report);
+		}
+	}
 }
