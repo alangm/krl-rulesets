@@ -8,7 +8,6 @@ ruleset track_trips_2 {
     sharing on
     provides long_trip
   }
-
   global {
     long_trip = 100
   }
