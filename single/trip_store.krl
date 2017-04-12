@@ -5,8 +5,7 @@ ruleset trip_store {
     description << Track trips ruleset for part 2 >>
     author "Alan Moody"
     logging on
-    sharing on
-    provides trips, long_trips, short_trips
+    shares trips, long_trips, short_trips
   }
 
   global {
