@@ -52,43 +52,7 @@ ruleset manage_fleet {
     }
   }
 
-  rule pico_child_initialized {
-    select when pico child_initialized
-    pre {
-      child = event:attr("new_child")
-      vehicle_id = event:attr("rs_attrs"){"vehicle_id"}.klog("Howdy, Y'all!")
-      eci = meta:eci
-    }
-    event:send(
-      { "eci": child.eci, "eid": "install-ruleset",
-        "domain": "pico", "type": "new_ruleset",
-        "attrs": { "rid": "Subscriptions", "vehicle_id": vehicle_id } })
-    event:send(
-      { "eci": child.eci, "eid": "install-ruleset",
-        "domain": "pico", "type": "new_ruleset",
-        "attrs": { "rid": "trip_store", "vehicle_id": vehicle_id } } )
-    event:send(
-      { "eci": child.eci, "eid": "install-ruleset",
-        "domain": "pico", "type": "new_ruleset",
-        "attrs": { "rid": "track_trips_2", "vehicle_id": vehicle_id } } )
-    event:send(
-      { "eci": eci, "eid": "subscription",
-        "domain": "wrangler", "type": "subscription",
-        "attrs": {
-          "name": get_subscription(vehicle_id),
-          "name_space": "car",
-          "my_role": "fleet",
-          "subscriber_role": "vehicle",
-          "channel_type": "subscription",
-          "subscriber_eci": child.eci
-        }
-      }
-    )
-    fired {
-      ent:fleet_vehicles := ent:fleet_vehicles.defaultsTo({});
-      ent:fleet_vehicles{vehicle_id} := child;
-    }
-  }
+  
 
   rule delete_vehicle {
     select when car unneeded_vehicle
